@@ -8,12 +8,16 @@ public class movementScript : MonoBehaviour {
 	public float drag;
 	public float thrustDrag;
 	public float engineThrust;
+	public float phaseChoke;
+	public float nextPhase;
 
 
+	// Use this for initialization
 	void Start () {
-		engineThrust = 100; //otherScript.engStatThrust;
+		nextPhase = 3f; //otherScript.engStatPhase
+		engineThrust = 100f; //otherScript.engStatThrust;
 		thrust = engineThrust;
-		rotarySpeed = 5; //otherScript.engStatRotate;
+		rotarySpeed = 5f; //otherScript.engStatRotate;
 		//engineEnergy = otherScript.engStatThrust;
 	}
 
@@ -21,17 +25,19 @@ public class movementScript : MonoBehaviour {
 	{
 		if (Input.GetKey (KeyCode.Mouse0)) { // if left button pressed...
 			Ray phaseCheck = Camera.main.ScreenPointToRay(Input.mousePosition);
-			RaycastHit Trigger;
-			if (Physics.Raycast (phaseCheck, out Trigger) && Trigger.transform.name == "PhaseCheck") {
-					gameObject.transform.position = (Trigger.point);
-
+			RaycastHit hit;
+			if (Physics.Raycast (phaseCheck, out hit) && hit.transform.name == "PhaseCheck" && Time.time > phaseChoke) {
+				phaseChoke = Time.time + nextPhase;
+				Vector3 Trigger = new Vector3 (hit.point.x, hit.point.y +1, hit.point.z);
+				gameObject.transform.position = (Trigger);
 			}
 		}
 	}
 		
 	
+	// Update is called once per frame
 	void Update () 
-	{
+	{//phaseCheck
 		if (Input.GetKey (KeyCode.W)) 
 		{
 		rigidbody.AddForce (transform.forward * thrust * Time.deltaTime);
