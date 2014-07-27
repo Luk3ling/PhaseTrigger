@@ -1,0 +1,62 @@
+using UnityEngine;
+using System.Collections;
+
+public class movementScript : MonoBehaviour {
+
+	public float thrust;
+	public float rotarySpeed;
+	public float drag;
+	public float thrustDrag;
+	public float engineThrust;
+
+
+	void Start () {
+		engineThrust = 100; //otherScript.engStatThrust;
+		thrust = engineThrust;
+		rotarySpeed = 5; //otherScript.engStatRotate;
+		//engineEnergy = otherScript.engStatThrust;
+	}
+
+	void FixedUpdate()
+	{
+		if (Input.GetKey (KeyCode.Mouse0)) { // if left button pressed...
+			Ray phaseCheck = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit Trigger;
+			if (Physics.Raycast (phaseCheck, out Trigger) && Trigger.transform.name == "PhaseCheck") {
+					gameObject.transform.position = (Trigger.point);
+
+			}
+		}
+	}
+		
+	
+	void Update () 
+	{
+		if (Input.GetKey (KeyCode.W)) 
+		{
+		rigidbody.AddForce (transform.forward * thrust * Time.deltaTime);
+		rigidbody.drag = thrustDrag;
+		} 
+		else if (Input.GetKey (KeyCode.S)) 
+			{
+			rigidbody.AddForce (-transform.forward * thrust * Time.deltaTime);
+			rigidbody.drag = thrustDrag;
+			} 
+			else 
+			rigidbody.drag = drag;
+				
+		if (Input.GetKey(KeyCode.D)) 
+		{
+			Vector3 newRotation = transform.rotation.eulerAngles;
+			newRotation.y += rotarySpeed;
+			transform.rotation = Quaternion.Euler (newRotation);
+		}    
+		else if (Input.GetKey(KeyCode.A)) 
+		{
+			Vector3 newRotation = transform.rotation.eulerAngles;
+			newRotation.y -= rotarySpeed;
+			transform.rotation = Quaternion.Euler (newRotation);
+		}
+	}
+}
+
