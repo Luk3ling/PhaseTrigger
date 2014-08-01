@@ -1,0 +1,82 @@
+using UnityEngine;
+using System.Collections;
+
+[System.Serializable]
+public class Item {
+	public string itemName;
+	public int itemID;
+	public string itemDesc;
+	public int itemValue;
+	public Texture2D itemIcon;
+	public int itemHull;
+	public float itemRate;
+	public int itemDamage;
+	public float itemThrust;
+	public float itemAreaSpread;
+	public int itemRotarySpeed;
+	public float itemFiringArc;
+	public int itemShieldBonDmg;
+	public int itemHullBonDmg;
+	public int itemArmor;
+	public int itemShield;
+	public int itemRange;
+
+	public ItemType itemType;
+
+	public enum ItemType {
+		Weapon,
+		Armor,
+		Engine,
+		eWarfare,
+		Quest,
+		Sale,
+	}
+
+	public Item(string name, int id, string desc, int value, int hull, float rate, int damage, float thrust, float spread, int rotarySpeed, float firingArc, int shieldBonDmg, int hullBonDmg, int armor, int shield, int range, ItemType type)
+	{
+		itemName = name;
+		itemID = id;
+		itemDesc = desc;
+		itemValue = value;
+		itemIcon = Resources.Load<Texture2D> ("ItemIcons/" +name );
+		itemHull = hull;
+		itemRate = rate;
+		itemDamage = damage;
+		itemThrust = thrust;
+		itemAreaSpread = spread;
+		itemRotarySpeed = rotarySpeed;
+		itemFiringArc = firingArc;
+		itemShieldBonDmg = shieldBonDmg;
+		itemHullBonDmg = hullBonDmg;
+		itemArmor = armor;
+		itemShield = shield;
+		itemRange = range;
+		itemType = type;
+
+	}
+	public Item()
+	{
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
