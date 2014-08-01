@@ -1,0 +1,16 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class itemDatabase : MonoBehaviour {
+	public List<Item> items = new List<Item>();
+
+	void Start ()
+	{
+		//Weapons
+		items.Add (new Item ("Gatling Phaser", 0, "Respectable accuracy coupled with a brutally fast rate of fire. Awesome.", 65, 0,0.25f,1,0,0f,3,0.66f,0,0,0,0,2, Item.ItemType.Weapon ));
+		items.Add (new Item ("Energy Flak", 1, "Saturate an area with bolts of volatile energy. Devastating at close range and against Shields.", 65 ,0,1.33f,2,0,4f,2,1.33f,2,0,0,0,1, Item.ItemType.Weapon ));
+		//Electronic Warfare
+		items.Add (new Item ("Anti-matter Infuser", 101, "Infuses your weapons ammunition or emitter with Anti-matter, boosting damage", 250 ,0,0f,4,0f,0f,0,0f,2,0,0,0,0, Item.ItemType.eWarfare ));
+	}
+}
