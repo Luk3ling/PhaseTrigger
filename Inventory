@@ -2,37 +2,41 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 public class Inventory : MonoBehaviour {
-
+	
 	public int slotsX, slotsY;
 	public GUISkin InvBackground;
 	public List<Item> inventory = new List<Item>();
 	public List<Item> slots = new List<Item> ();
 	private bool showInventory;
 	private itemDatabase dataBase;
-
+	
 	//tooltip
 	private bool showTooltip;
 	private string tooltip;
-
+	
 	//drag and drop
 	private bool draggingItem;
 	private Item draggedItem;
 	private int prevIndex;
-
-
+	
+	
 	// Use this for initialization
 	void Start () {
 		for (int i = 0; i <(slotsX * slotsY); i++)
-		    {
+		{
 			slots.Add(new Item());
 			inventory.Add (new Item());
-			}
+		}
 		dataBase = GameObject.FindGameObjectWithTag ("ItemDatabase").GetComponent<itemDatabase> ();
 		AddItem (1);
 		AddItem (0);
 		AddItem (2);
-		AddItem (5);
+		AddItem (2);
+		AddItem (2);
+		AddItem (2);
+		AddItem (3);
 
+		
 	}
 	void Update()
 	{
@@ -45,7 +49,7 @@ public class Inventory : MonoBehaviour {
 	void OnGUI()
 	{
 		if (GUI.Button (new Rect (40, 300,100,40), "Save"))
-		    SaveInventory();
+			SaveInventory();
 		if (GUI.Button (new Rect (40, 350, 100, 40), "Load"))
 			LoadInventory ();
 		tooltip = "";
@@ -67,7 +71,7 @@ public class Inventory : MonoBehaviour {
 	{
 		Event e = Event.current;
 		int i = 0;
-
+		
 		for (int y = 0; y < slotsY; y++)
 		{
 			for(int x = 0; x < slotsX; x++)
@@ -89,33 +93,40 @@ public class Inventory : MonoBehaviour {
 							draggedItem = slots[i];
 							inventory[i] = new Item();
 						}
-							if(e.isMouse && e.type == EventType.mouseDown && e.button == 1)
-							{
+						if(e.isMouse && e.type == EventType.mouseDown && e.button == 1)
+						{
 							if (slots[i].itemType == Item.ItemType.eWarfare)
-								{
+							{
 								print ("Used: " + slots[i].itemName);
 								inventory[i].stackAmount -=1;
 								//UseConsumeable(slots[i].itemID);
 								if (slots[i].stackAmount <= 0)
-								RemoveItem (slots[i].itemID);
-								}
+									RemoveItem (slots[i].itemID);
 							}
-
+						}
+						
 						if (e.type == EventType.mouseUp && draggingItem)
 						{
-							if(draggedItem.itemName == slots[i].itemName)
+							if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
+							{ //int idx = dataBase.items.IndexOf(draggedItem.itemName);
+								//if (idx >= 0)
+								int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
+								if(index >= 0)
 								{
-								inventory[i] = (new Item (inventory[i].itemName, inventory[i].itemID+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-								dataBase.items.Add (new Item (inventory[i].itemName, inventory[i].itemID, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+								print (index);
+								inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+								dataBase.items.RemoveAt (index);
+								dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
 								draggingItem = false;
 								draggedItem = null;
 								return;
 								}
+							}
 							inventory[prevIndex] = inventory[i];
 							inventory[i] = draggedItem;
 							draggingItem = false;
 							draggedItem = null;
-
+							
 						}
 					}
 				}else {
@@ -128,7 +139,7 @@ public class Inventory : MonoBehaviour {
 							draggedItem = null;
 						}
 					}
-
+					
 				}
 				if (tooltip == "")
 				{
@@ -137,27 +148,27 @@ public class Inventory : MonoBehaviour {
 				i++;
 			}
 		}
-
+		
 	}
-
-
+	
+	
 	string CreateToolTip(Item item)
 	{//Simple if statement as below to specialize tooltips based on item type.
-	//	if(item.itemType == Item.ItemType.eWarfare)
+		//	if(item.itemType == Item.ItemType.eWarfare)
 		tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n" + "Amount: " + item.stackAmount + "\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
-	//	if (item.itemType == Item.ItemType.Weapon)
-	//					tooltip = "";
+		//	if (item.itemType == Item.ItemType.Weapon)
+		//					tooltip = "";
 		return tooltip;
 	}
-
+	
 	void RemoveItem (int id)
 	{
 		for (int i = 0; i < inventory.Count; i++) 
 		{
 			if (inventory[i].itemID == id) 
 			{
-			inventory[i] = new Item();
-			break;
+				inventory[i] = new Item();
+				break;
 			}
 		}
 	}
@@ -168,8 +179,8 @@ public class Inventory : MonoBehaviour {
 		{
 			if (inventory[i].itemName == null)
 			{//add auto-stack functionality via "InventoryContains(item.itemID)"
-					if(inventory[i].isStackable == true)
-						inventory[i].stackAmount += 1;
+				if(inventory[i].isStackable == true)
+					inventory[i].stackAmount += 1;
 				{
 					for (int j = 0; j < dataBase.items.Count; j++)
 					{
@@ -198,7 +209,7 @@ public class Inventory : MonoBehaviour {
 		}
 		return result;
 	}
-/*	private void UseConsumeable(int id, int slot, bool deleteItem)
+	/*	private void UseConsumeable(int id, int slot, bool deleteItem)
 		{
 			switch (id)
 			{// This is for making consumeables. Reference the ID of the consumeable and make it its own case here, each case.
@@ -211,9 +222,9 @@ public class Inventory : MonoBehaviour {
 	}*/
 	void SaveInventory()
 	{
-
+		
 		for (int i = 0; i < inventory.Count; i++)
-		PlayerPrefs.SetInt ("Inventory " + i, inventory[i].itemID);
+			PlayerPrefs.SetInt ("Inventory " + i, inventory[i].itemID);
 	}
 	void LoadInventory()
 	{
