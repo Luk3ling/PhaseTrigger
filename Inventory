@@ -30,16 +30,9 @@ public class Inventory : MonoBehaviour {
 		dataBase = GameObject.FindGameObjectWithTag ("ItemDatabase").GetComponent<itemDatabase> ();
 		AddItem (1);
 		AddItem (0);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
-		AddItem (1001);
+		AddItem (2);
+		AddItem (5);
+
 	}
 	void Update()
 	{
@@ -98,11 +91,11 @@ public class Inventory : MonoBehaviour {
 						}
 							if(e.isMouse && e.type == EventType.mouseDown && e.button == 1)
 							{
-								if (slots[i].itemType == Item.ItemType.eWarfare)
+							if (slots[i].itemType == Item.ItemType.eWarfare)
 								{
 								print ("Used: " + slots[i].itemName);
-								slots[i].stackAmount -=1;
-								//UseConsumeable(slots[i].itemID;
+								inventory[i].stackAmount -=1;
+								//UseConsumeable(slots[i].itemID);
 								if (slots[i].stackAmount <= 0)
 								RemoveItem (slots[i].itemID);
 								}
@@ -112,7 +105,8 @@ public class Inventory : MonoBehaviour {
 						{
 							if(draggedItem.itemName == slots[i].itemName)
 								{
-								inventory[i] = (new Item (inventory[i].itemName, inventory[i].itemID+1, inventory[i].isStackable, inventory[i].AuxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+								inventory[i] = (new Item (inventory[i].itemName, inventory[i].itemID+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+								dataBase.items.Add (new Item (inventory[i].itemName, inventory[i].itemID, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
 								draggingItem = false;
 								draggedItem = null;
 								return;
@@ -146,9 +140,13 @@ public class Inventory : MonoBehaviour {
 
 	}
 
+
 	string CreateToolTip(Item item)
-	{
+	{//Simple if statement as below to specialize tooltips based on item type.
+	//	if(item.itemType == Item.ItemType.eWarfare)
 		tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n" + "Amount: " + item.stackAmount + "\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
+	//	if (item.itemType == Item.ItemType.Weapon)
+	//					tooltip = "";
 		return tooltip;
 	}
 
@@ -213,14 +211,13 @@ public class Inventory : MonoBehaviour {
 	}*/
 	void SaveInventory()
 	{
-		for (int i = 0; i< inventory.Count; i++)
-		PlayerPrefs.SetInt ("Inventory " + i, inventory [i].itemID);
+
+		for (int i = 0; i < inventory.Count; i++)
+		PlayerPrefs.SetInt ("Inventory " + i, inventory[i].itemID);
 	}
 	void LoadInventory()
 	{
 		for (int i = 0; i < inventory.Count; i++)
-		{
 			inventory[i] = PlayerPrefs.GetInt("Inventory " + i, -1) >= 0 ? dataBase.items [PlayerPrefs.GetInt ("Inventory " + i)] : new Item();
-		}
 	}
 }
