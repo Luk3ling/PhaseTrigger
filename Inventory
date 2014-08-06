@@ -1,14 +1,23 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+[System.Serializable]
 public class Inventory : MonoBehaviour {
 	
 	public int slotsX, slotsY;
+	public int slotseX, slotseY;
 	public GUISkin InvBackground;
+	public GUISkin HeaderBackground;
 	public List<Item> inventory = new List<Item>();
+	public List<Item> equipment = new List<Item>();
 	public List<Item> slots = new List<Item> ();
+	public List<Item> equipSlots = new List<Item> ();
 	private bool showInventory;
+	private bool showEquipment;
 	private itemDatabase dataBase;
+	public Rect invSize = new Rect (10, 10, 170, 154);
+	public Rect eqpSize = new Rect (600, 10, 102, 120);
+	private Item iT;
 	
 	//tooltip
 	private bool showTooltip;
@@ -27,14 +36,22 @@ public class Inventory : MonoBehaviour {
 			slots.Add(new Item());
 			inventory.Add (new Item());
 		}
+		for (int j = 0; j <(slotseX * slotseY); j++)
+		{
+			equipSlots.Add(new Item());
+			equipment.Add (new Item());
+		}
 		dataBase = GameObject.FindGameObjectWithTag ("ItemDatabase").GetComponent<itemDatabase> ();
-		AddItem (1);
 		AddItem (0);
+		AddItem (1);
 		AddItem (2);
-		AddItem (2);
-		AddItem (2);
-		AddItem (2);
-		AddItem (3);
+		AddItem (4);
+		AddItem (5);
+		AddItem (6);
+		AddItem (7);
+		AddItem (8);
+
+
 
 		
 	}
@@ -44,34 +61,128 @@ public class Inventory : MonoBehaviour {
 		{
 			showInventory = !showInventory;
 		}
+		if (Input.GetKeyDown (KeyCode.C)) 
+		{
+			showEquipment = !showEquipment;
+		}
 	}
-	
+
 	void OnGUI()
 	{
-		if (GUI.Button (new Rect (40, 300,100,40), "Save"))
-			SaveInventory();
-		if (GUI.Button (new Rect (40, 350, 100, 40), "Load"))
-			LoadInventory ();
+
+		//if (GUI.Button (new Rect (400, 350,100,40), "Save Game"))
+
+		//if (GUI.Button (new Rect (40, 350, 100, 40), "Load Game"))
+		
 		tooltip = "";
 		GUI.skin = InvBackground;
 		if (showInventory) 
 		{
-			DrawInventory();
+			GUI.Window (0, invSize, DrawInventory, "Inventory", HeaderBackground.GetStyle("Header"));
+		//	DrawInventory (0);
 		}
-		if (showTooltip && showInventory) 
+		if (showEquipment)
+		{
+			GUI.Window (1, eqpSize, DrawEquipment, "Equipment", HeaderBackground.GetStyle("Header"));
+		//	DrawEquipment(1);
+		}
+		if (showTooltip && iT != null) 
 		{//Use this to change tooltip for Mobile
 			GUI.Box (new Rect (Event.current.mousePosition.x + 10f, Event.current.mousePosition.y, 200,200), tooltip, InvBackground.GetStyle("Tooltip"));
+			tooltip = CreateToolTip (iT);
+		
+		}
+		if (showTooltip && iT != null) 
+		{//Use this to change tooltip for Mobile
+			GUI.Box (new Rect (Event.current.mousePosition.x + 10f, Event.current.mousePosition.y, 200,200), tooltip, InvBackground.GetStyle("Tooltip"));
+			tooltip = CreateToolTip (iT);
 		}
 		if (draggingItem)
 		{
 			GUI.DrawTexture(new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 50,50), draggedItem.itemIcon);
 		}
+
 	}
-	void DrawInventory()
+
+	void DrawEquipment(int id)
 	{
+		iT = null;
 		Event e = Event.current;
 		int i = 0;
 		
+		for (int y = 0; y < slotseY; y++)
+		{ 
+			for(int x = 0; x < slotseX; x++)
+			{ 	
+				Rect slotRect = new Rect (x * 34, y * 34, 34, 34);
+				GUI.Box (slotRect, "", InvBackground.GetStyle ("EquipmentPanel"));
+				equipSlots[i] = equipment[i];
+				if (equipSlots[i].itemName != null)
+				{
+					GUI.DrawTexture (slotRect, equipment[i].itemIcon); //was Inventory
+					if (slotRect.Contains (e.mousePosition))
+					{
+						tooltip = CreateToolTip (equipSlots[i]);
+						iT = equipSlots[i];
+						showTooltip = true;
+						if(e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)
+						{
+							draggingItem = true;
+							prevIndex = i;
+							draggedItem = equipSlots[i];
+							equipment[i] = new Item();
+						}
+						//if(e.isMouse && e.type == EventType.mouseDown && e.button == 1 && inventory[i].isStackable == false)
+						equipment[i] = draggedItem;
+						equipment[i] = new Item();
+						inventory[i] = draggedItem;
+						draggedItem = null;
+						if (e.type == EventType.mouseUp && draggingItem)
+						{
+							if(draggedItem.itemName == equipSlots[i].itemName && draggedItem.isStackable)
+								equipment[prevIndex] = equipment[i];
+								equipment[i] = draggedItem;
+								draggingItem = false;
+								draggedItem = null;							
+						}
+					}
+				}else {
+					if(slotRect.Contains(e.mousePosition))
+					{
+						if(e.type == EventType.mouseUp && draggingItem)
+						{
+							equipment[i] = draggedItem;
+							draggingItem=false;
+							draggedItem = null;
+						}
+					}
+					
+				}
+				if (tooltip == "")
+				{
+					showTooltip = false;
+				}
+				i++;
+			}
+		}
+		//Trying to get the Tooltip to only show if over an item. It no longer shows at all, regardless of being inside the GUI.Window
+		//The Icons also are not draw to the mouse cursor unless outside the window.
+		if (draggingItem)
+		{
+			GUI.DrawTexture(new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 50,50), draggedItem.itemIcon);
+		}
+		if (showTooltip && iT != null) 
+		{
+			GUI.Label (new Rect (Event.current.mousePosition.x + 10f, Event.current.mousePosition.y, 200, 200), tooltip, InvBackground.GetStyle ("Tooltip"));
+		}
+	}
+	
+	void DrawInventory(int id)
+	{
+		iT = null;
+		Event e = Event.current;
+		int i = 0;
+
 		for (int y = 0; y < slotsY; y++)
 		{
 			for(int x = 0; x < slotsX; x++)
@@ -85,6 +196,7 @@ public class Inventory : MonoBehaviour {
 					if (slotRect.Contains (e.mousePosition))
 					{
 						tooltip = CreateToolTip (slots[i]);
+						iT = slots[i];
 						showTooltip = true;
 						if(e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)
 						{
@@ -108,18 +220,17 @@ public class Inventory : MonoBehaviour {
 						if (e.type == EventType.mouseUp && draggingItem)
 						{
 							if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
-							{ //int idx = dataBase.items.IndexOf(draggedItem.itemName);
-								//if (idx >= 0)
+							{ //Stackable items, motherfucker.
 								int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
 								if(index >= 0)
 								{
-								print (index);
-								inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-								dataBase.items.RemoveAt (index);
-								dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-								draggingItem = false;
-								draggedItem = null;
-								return;
+									print (index);
+									inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+									dataBase.items.RemoveAt (index);
+									dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].auxillaryID, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+									draggingItem = false;
+									draggedItem = null;
+									return;
 								}
 							}
 							inventory[prevIndex] = inventory[i];
@@ -148,16 +259,34 @@ public class Inventory : MonoBehaviour {
 				i++;
 			}
 		}
-		
+		if (draggingItem)
+		{
+			GUI.DrawTexture(new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 50,50), draggedItem.itemIcon);
+		}
+		if (showTooltip && iT != null) 
+		{
+			GUI.Label (new Rect (Event.current.mousePosition.x + 10f, Event.current.mousePosition.y, 200, 200), tooltip, InvBackground.GetStyle ("Tooltip"));
+
 	}
-	
-	
+	}
 	string CreateToolTip(Item item)
 	{//Simple if statement as below to specialize tooltips based on item type.
-		//	if(item.itemType == Item.ItemType.eWarfare)
-		tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n" + "Amount: " + item.stackAmount + "\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
-		//	if (item.itemType == Item.ItemType.Weapon)
-		//					tooltip = "";
+		if(item.itemType == Item.ItemType.eWarfare)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Thrust : " + item.itemThrust + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
+		else if (item.itemType == Item.ItemType.Weapon)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
+		else if (item.itemType == Item.ItemType.Armor)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + item.itemThrust + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
+		else if (item.itemType == Item.ItemType.Engine)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + item.itemThrust + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
+		else if (item.itemType == Item.ItemType.Sale)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + "<color=#FCEC00>" + "Value: " + item.itemValue + "</color>\n\n\n\n\n" + "<color=#f8b526>" +  item.itemDesc + "</color>";
+		else if (item.itemType == Item.ItemType.Quest)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Amount: " + item.stackAmount + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
+		else if (item.itemType == Item.ItemType.Shield)
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "\n" + "Shields: " + item.itemShield + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
+		else
+		tooltip = "";
 		return tooltip;
 	}
 	
@@ -220,7 +349,7 @@ public class Inventory : MonoBehaviour {
 				}
 		}
 	}*/
-	void SaveInventory()
+	/*void SaveInventory()
 	{
 		
 		for (int i = 0; i < inventory.Count; i++)
@@ -230,5 +359,5 @@ public class Inventory : MonoBehaviour {
 	{
 		for (int i = 0; i < inventory.Count; i++)
 			inventory[i] = PlayerPrefs.GetInt("Inventory " + i, -1) >= 0 ? dataBase.items [PlayerPrefs.GetInt ("Inventory " + i)] : new Item();
-	}
+	}*/
 }
