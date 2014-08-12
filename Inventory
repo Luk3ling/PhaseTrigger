@@ -19,9 +19,10 @@ public class Inventory : MonoBehaviour {
 	//drag and drop
 	public bool draggingItem;
 	public Item draggedItem;
-	public int prevIndex;
+	public int invPrevIndex;
 	//equipment
-	public Item swapToEqp;
+	public Item swapItem; //Test, was 'int'
+	public int swapIndex;
 	
 	// Use this for initialization
 	void Start () {
@@ -39,19 +40,25 @@ public class Inventory : MonoBehaviour {
 		AddItem (2);
 		AddItem (2);
 		AddItem (2);
-		AddItem (2);
 		AddItem (3);
-
+		AddItem (3);
+		AddItem (1);
+		AddItem (0);
+		AddItem (1);
+		AddItem (0);
 		
 	}
 	void Update()
 	{
+//		print (swap.itemName + swap.itemID + "From INV");
 		if (Input.GetKeyDown (KeyCode.I)) 
 		{
 			showInventory = !showInventory;
+
 		}
+
 	}
-	
+
 	void OnGUI()
 	{
 		GUI.depth = 2;
@@ -74,12 +81,10 @@ public class Inventory : MonoBehaviour {
 		{
 			eqp.draggingItem = true;
 			eqp.draggedItem = draggedItem;
-			swapToEqp = draggedItem;
 			GUI.DrawTexture(new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 50,50), draggedItem.itemIcon);
 		}
 		if (!draggingItem) 
 		{
-			swapToEqp = null;
 			eqp.draggingItem = false;
 		}
 	}
@@ -87,25 +92,29 @@ public class Inventory : MonoBehaviour {
 	{
 		Event e = Event.current;
 		int i = 0;
-		
+		swapItem = new Item(); //Test
 		for (int y = 0; y < slotsY; y++)
 		{
 			for(int x = 0; x < slotsX; x++)
 			{
 				Rect slotRect = new Rect (x * 34, y * 34, 34, 34);
 				GUI.Box (slotRect, "", InvBackground.GetStyle ("SlotBackground"));
-				slots[i] = inventory[i];
+				slots[i] = inventory[i]; //Test
+
+			//	Rect eqpFinder = new Rect (585 + x * 34, y * 34, 34, 34);
 				if (slots[i].itemName != null)
 				{
 					GUI.DrawTexture (slotRect, inventory[i].itemIcon);
 					if (slotRect.Contains (e.mousePosition))
-					{
+					{	swapItem = inventory[i];
+						swapIndex = i;//Possible spot to get Mouseover.itemID//
 						tooltip = CreateToolTip (slots[i]);
 						showTooltip = true;
 						if(e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)
 						{
+
 							draggingItem = true;
-							prevIndex = i;
+							invPrevIndex = i;
 							draggedItem = slots[i];
 							inventory[i] = new Item();
 						}
@@ -120,30 +129,33 @@ public class Inventory : MonoBehaviour {
 									RemoveItem (slots[i].itemID);
 							}
 						}
-						
+						////********TEST*******//////
 						if (e.type == EventType.mouseUp && draggingItem)
 						{
-	//						if(eqp.swapToInv != null)
-	//						{
-	//							inventory[i] = eqp.swapToInv;
-	//							eqp.swapToInv = null;
-	//							draggedItem = null;
-	//						}
+							if (swapItem.itemID >= 0)
+							{print ("Made it to code in INV");
+								inventory[swapIndex] = draggedItem;
+								eqp.equipment[eqp.eqpPrevIndex] = swapItem;
+								draggingItem=false;
+								draggedItem = null;
+								return;
+							}
 							if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
-							{ //Stackable items, motherfucker.
+							{//Stackable items.
 								int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
 								if(index >= 0)
 								{
 								print (index);
 								inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
 								dataBase.items.RemoveAt (index);
-									dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+								dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
 								draggingItem = false;
 								draggedItem = null;
 								return;
 								}
 							}
-							inventory[prevIndex] = inventory[i];
+
+							inventory[invPrevIndex] = inventory[i];
 							inventory[i] = draggedItem;
 							draggingItem = false;
 							draggedItem = null;
@@ -176,7 +188,7 @@ public class Inventory : MonoBehaviour {
 	string CreateToolTip(Item item)
 	{//Simple if statement as below to specialize tooltips based on item type.
 		if(item.itemType == Item.ItemType.eWarfare)
-			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Thrust : " + item.itemThrust + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n" + "Amount : " + item.stackAmount + "\n\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
 		else if (item.itemType == Item.ItemType.Weapon)
 			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
 		else if (item.itemType == Item.ItemType.Armor)
@@ -240,6 +252,7 @@ public class Inventory : MonoBehaviour {
 		}
 		return result;
 	}
+
 	/*	private void UseConsumeable(int id, int slot, bool deleteItem)
 		{
 			switch (id)
