@@ -7,8 +7,8 @@ public class InventoryAlsoTest : MonoBehaviour {
 	public Inventory inv;
 	public int slotsX, slotsY;
 	public GUISkin InvBackground;
-	public List<Item> inventory = new List<Item>();
-	public List<Item> slots = new List<Item> ();
+	public List<Item> equipment = new List<Item>();
+	public List<Item> slotEqp = new List<Item> ();
 	private bool showInventory;
 	private itemDatabase dataBase;
 	
@@ -19,16 +19,18 @@ public class InventoryAlsoTest : MonoBehaviour {
 	//drag and drop
 	public bool draggingItem;
 	public Item draggedItem;
-	public int prevIndex;
+	public int eqpPrevIndex;
 	//equipment
-	public Item swapToInv;
+	public Item swapItem;
+	public int swapIndex;
+
 	
 	// Use this for initialization
 	void Start () {
 		for (int i = 0; i <(slotsX * slotsY); i++)
 		{
-			slots.Add(new Item());
-			inventory.Add (new Item());
+			slotEqp.Add(new Item());
+			equipment.Add (new Item());
 		}
 		//	inv = GameObject.FindGameObjectWithTag ("Equipment").GetComponent<Equipment> ();
 		//Testing purposes
@@ -36,14 +38,20 @@ public class InventoryAlsoTest : MonoBehaviour {
 		dataBase = GameObject.FindGameObjectWithTag ("ItemDatabase").GetComponent<itemDatabase> ();
 		AddItem (1);
 		AddItem (0);
+		AddItem (1);
+		AddItem (0);
+		AddItem (1);
+		AddItem (0);
 		
 		
 	}
 	void Update()
 	{
+//		print (swap.itemName + swap.itemID + "From EQP");
 		if (Input.GetKeyDown (KeyCode.I)) 
 		{
 			showInventory = !showInventory;
+
 		}
 	}
 	
@@ -69,12 +77,10 @@ public class InventoryAlsoTest : MonoBehaviour {
 		{
 			inv.draggingItem = true;
 			inv.draggedItem = draggedItem;
-			swapToInv = draggedItem;
 			GUI.DrawTexture(new Rect (Event.current.mousePosition.x, Event.current.mousePosition.y, 50,50), draggedItem.itemIcon);
 		}
 		if (!draggingItem) 
 		{
-			swapToInv = null;
 			inv.draggingItem = false;
 		}
 	}
@@ -82,64 +88,71 @@ public class InventoryAlsoTest : MonoBehaviour {
 	{
 		Event e = Event.current;
 		int i = 0;
-		
+		swapItem = new Item();//Test	
 		for (int y = 0; y < slotsY; y++)
 		{
 			for(int x = 0; x < slotsX; x++)
 			{
 				Rect slotRect = new Rect (585 + x * 34, y * 34, 34, 34);
 				GUI.Box (slotRect, "", InvBackground.GetStyle ("SlotBackground"));
-				slots[i] = inventory[i];
-				if (slots[i].itemName != null)
+				slotEqp[i] = equipment[i];
+		//		Rect invFinder = new Rect (585 + x * 34, y * 34, 34, 34);
+		//		swap = inventory[i].itemID;////TEST////
+				if (slotEqp[i].itemName != null)
 				{
-					GUI.DrawTexture (slotRect, inventory[i].itemIcon);
+					GUI.DrawTexture (slotRect, equipment[i].itemIcon);
 					if (slotRect.Contains (e.mousePosition))
-					{
-						tooltip = CreateToolTip (slots[i]);
+					{	swapItem = equipment[i];
+						swapIndex = i;
+						tooltip = CreateToolTip (slotEqp[i]);
 						showTooltip = true;
 						if(e.button == 0 && e.type == EventType.mouseDrag && !draggingItem)
 						{
+						//	swap = inventory[i].itemID;
 							draggingItem = true;
-							prevIndex = i;
-							draggedItem = slots[i];
-							inventory[i] = new Item();
+							eqpPrevIndex = i;
+							draggedItem = slotEqp[i];
+							equipment[i] = new Item();
 						}
 						if(e.isMouse && e.type == EventType.mouseDown && e.button == 1)
 						{
-							if (slots[i].itemType == Item.ItemType.eWarfare)
+							if (slotEqp[i].itemType == Item.ItemType.eWarfare)
 							{
-								print ("Used: " + slots[i].itemName);
-								inventory[i].stackAmount -=1;
+								print ("Used: " + slotEqp[i].itemName);
+								equipment[i].stackAmount -=1;
 								//UseConsumeable(slots[i].itemID);
-								if (slots[i].stackAmount <= 0)
-									RemoveItem (slots[i].itemID);
+								if (slotEqp[i].stackAmount <= 0)
+									RemoveItem (slotEqp[i].itemID);
 							}
 						}
 						
+						////********TEST*******//////
 						if (e.type == EventType.mouseUp && draggingItem)
 						{
-	//						if(inv.swapToEqp != null)
-	//						{
-	//							inventory[i] = inv.swapToEqp;
-	//							inv.swapToEqp = null;
-	//							draggedItem = null;
-	//						}
-							if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
+							if (swapItem.itemID >= 0)
+							{print ("Made it to code in EQP");
+								equipment[swapIndex] = draggedItem;
+								inv.inventory[inv.invPrevIndex] = swapItem;
+								draggingItem=false;
+								draggedItem = null;
+								return;
+							}
+							if(draggedItem.itemName == slotEqp[i].itemName && draggedItem.isStackable)
 							{ //Stackable items, motherfucker.
-								int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
+								int index = dataBase.items.FindIndex(item=>item.itemName == equipment[i].itemName);
 								if(index >= 0)
 								{
-									print (index);
-									inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-									dataBase.items.RemoveAt (index);
-									dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-									draggingItem = false;
-									draggedItem = null;
-									return;
+								print (index);
+								equipment[i] = (new Item (equipment[i].itemName, index+1, equipment[i].isStackable, equipment[i].isEquipment, equipment[i].stackAmount+draggedItem.stackAmount, equipment[i].maximumStack, equipment[i].itemDesc, equipment[i].itemValue ,equipment[i].itemHull,equipment[i].itemRate,equipment[i].itemDamage,equipment[i].itemThrust,equipment[i].itemAreaSpread,equipment[i].itemRotarySpeed,equipment[i].itemFiringArc,equipment[i].itemShieldBonDmg,equipment[i].itemHullBonDmg,equipment[i].itemArmor,equipment[i].itemShield,equipment[i].itemRange, equipment[i].itemType));
+								dataBase.items.RemoveAt (index);
+								dataBase.items.Insert (index+1, new Item (equipment[i].itemName, index+1, equipment[i].isStackable, equipment[i].isEquipment, equipment[i].stackAmount, equipment[i].maximumStack, equipment[i].itemDesc, equipment[i].itemValue ,equipment[i].itemHull,equipment[i].itemRate,equipment[i].itemDamage,equipment[i].itemThrust,equipment[i].itemAreaSpread,equipment[i].itemRotarySpeed,equipment[i].itemFiringArc,equipment[i].itemShieldBonDmg,equipment[i].itemHullBonDmg,equipment[i].itemArmor,equipment[i].itemShield,equipment[i].itemRange, equipment[i].itemType));
+								draggingItem = false;
+								draggedItem = null;
+								return;
 								}
 							}
-							inventory[prevIndex] = inventory[i];
-							inventory[i] = draggedItem;
+							equipment[eqpPrevIndex] = equipment[i];
+							equipment[i] = draggedItem;
 							draggingItem = false;
 							draggedItem = null;
 							
@@ -150,7 +163,14 @@ public class InventoryAlsoTest : MonoBehaviour {
 					{
 						if(e.type == EventType.mouseUp && draggingItem)
 						{
-							inventory[i] = draggedItem;
+							if (swapItem.itemID != -1)
+							{print ("Made it to code in EQP");
+								slotEqp.Insert (11,swapItem);
+								inv.slots.Insert (11, draggedItem);
+								draggingItem=false;
+								draggedItem = null;
+							}
+							equipment[i] = draggedItem;
 							draggingItem=false;
 							draggedItem = null;
 						}
@@ -171,7 +191,7 @@ public class InventoryAlsoTest : MonoBehaviour {
 	string CreateToolTip(Item item)
 	{//Simple if statement as below to specialize tooltips based on item type.
 		if(item.itemType == Item.ItemType.eWarfare)
-			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Thrust : " + item.itemThrust + "\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
+			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n" + "Amount : " + item.stackAmount + "\n\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>";
 		else if (item.itemType == Item.ItemType.Weapon)
 			tooltip = "<color=#ffffff>" + item.itemName + "</color>\n" + item.itemType + "\n\n" + "Damage: " + item.itemDamage + "\n" + "Rate: " + item.itemRate + "\n" + "Range: " + item.itemRange + "\n" + "Realignment Speed: " + item.itemRotarySpeed + "\n" + "Spread: " + item.itemAreaSpread + "\n\n\n" + "<color=#f8b526>" + item.itemDesc + "</color>" ;
 		else if (item.itemType == Item.ItemType.Armor)
@@ -189,11 +209,11 @@ public class InventoryAlsoTest : MonoBehaviour {
 	
 	void RemoveItem (int id)
 	{
-		for (int i = 0; i < inventory.Count; i++) 
+		for (int i = 0; i < equipment.Count; i++) 
 		{
-			if (inventory[i].itemID == id) 
+			if (equipment[i].itemID == id) 
 			{
-				inventory[i] = new Item();
+				equipment[i] = new Item();
 				break;
 			}
 		}
@@ -201,18 +221,18 @@ public class InventoryAlsoTest : MonoBehaviour {
 	// Add an Item to the inventory based on its item ID - AddItem(id); -
 	void AddItem(int id)
 	{
-		for (int i = 0; i < inventory.Count; i++) 
+		for (int i = 0; i < equipment.Count; i++) 
 		{
-			if (inventory[i].itemName == null)
+			if (equipment[i].itemName == null)
 			{//add auto-stack functionality via "InventoryContains(item.itemID)"
-				if(inventory[i].isStackable == true)
-					inventory[i].stackAmount += 1;
+				if(equipment[i].isStackable == true)
+					equipment[i].stackAmount += 1;
 				{
 					for (int j = 0; j < dataBase.items.Count; j++)
 					{
 						if (dataBase.items[j].itemID == id)
 						{
-							inventory[i] = dataBase.items[j];
+							equipment[i] = dataBase.items[j];
 						}
 					}
 				}
@@ -225,9 +245,9 @@ public class InventoryAlsoTest : MonoBehaviour {
 	bool InventoryContains(int id)
 	{
 		bool result = false;
-		for (int i = 0; i < inventory.Count; i++) 
+		for (int i = 0; i < equipment.Count; i++) 
 		{
-			result = inventory[i].itemID == id;	
+			result = equipment[i].itemID == id;	
 			if (result)
 			{
 				break;
