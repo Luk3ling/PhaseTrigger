@@ -23,6 +23,7 @@ public class Inventory : MonoBehaviour {
 	//equipment
 	public Item swapItem; //Test, was 'int'
 	public int swapIndex;
+	public bool InEquipment;
 	
 	// Use this for initialization
 	void Start () {
@@ -93,6 +94,9 @@ public class Inventory : MonoBehaviour {
 		Event e = Event.current;
 		int i = 0;
 		swapItem = new Item(); //Test
+		swapIndex = -1;
+		if (eqp.swapItem.itemID >= 0)
+			InEquipment = true;
 		for (int y = 0; y < slotsY; y++)
 		{
 			for(int x = 0; x < slotsX; x++)
@@ -132,29 +136,31 @@ public class Inventory : MonoBehaviour {
 						////********TEST*******//////
 						if (e.type == EventType.mouseUp && draggingItem)
 						{
-							if (swapItem.itemID >= 0)
-							{print ("Made it to code in INV");
+							////////////
+					//		if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
+					//		{//Stackable items.
+					//			int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
+					//			if(index >= 0)
+					//			{
+					//			print (index);
+					//			inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+					//			dataBase.items.RemoveAt (index);
+					//			dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
+					//			draggingItem = false;
+					//			draggedItem = null;
+					//			return;
+					//			}
+					//		}
+							if (InEquipment)
+							{
+								print ("Made it to code in INV");
 								inventory[swapIndex] = draggedItem;
 								eqp.equipment[eqp.eqpPrevIndex] = swapItem;
 								draggingItem=false;
 								draggedItem = null;
 								return;
 							}
-							if(draggedItem.itemName == slots[i].itemName && draggedItem.isStackable)
-							{//Stackable items.
-								int index = dataBase.items.FindIndex(item=>item.itemName == inventory[i].itemName);
-								if(index >= 0)
-								{
-								print (index);
-								inventory[i] = (new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount+draggedItem.stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-								dataBase.items.RemoveAt (index);
-								dataBase.items.Insert (index+1, new Item (inventory[i].itemName, index+1, inventory[i].isStackable, inventory[i].isEquipment, inventory[i].stackAmount, inventory[i].maximumStack, inventory[i].itemDesc, inventory[i].itemValue ,inventory[i].itemHull,inventory[i].itemRate,inventory[i].itemDamage,inventory[i].itemThrust,inventory[i].itemAreaSpread,inventory[i].itemRotarySpeed,inventory[i].itemFiringArc,inventory[i].itemShieldBonDmg,inventory[i].itemHullBonDmg,inventory[i].itemArmor,inventory[i].itemShield,inventory[i].itemRange, inventory[i].itemType));
-								draggingItem = false;
-								draggedItem = null;
-								return;
-								}
-							}
-
+							print ("Missed target code INV");
 							inventory[invPrevIndex] = inventory[i];
 							inventory[i] = draggedItem;
 							draggingItem = false;
@@ -180,6 +186,8 @@ public class Inventory : MonoBehaviour {
 				}
 				i++;
 			}
+			if (eqp.swapItem.itemID == -1)
+				InEquipment = false;
 		}
 		
 	}
